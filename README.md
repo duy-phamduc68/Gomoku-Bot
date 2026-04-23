@@ -6,13 +6,11 @@ How to play: Each players take turn to place their stone on a 19 x 19 board, Bla
 
 If you wish to review the bot's log, execute ***"dev_run.bat"***, or open cmd and type ***"java -jar Gomoku.jar"*** (only for Windows and you should place ***"/Gomoku"*** in a different directory other than ***"/Downloads"***), if not then you can just execute ***"Gomoku.jar"***, or run ***"run.vbs"***. Thanks for trying out my program!
 
-Compiled in Java 15
+Compiled in Java 15. 
 
-## Note:
+> Note: the pre-built `.jar` app in `gomoku_app` is NOT the latest version (the codebase in `gomoku/`)
 
-### Project is Archived:
-
-Unfortunately, I have decided to finalize the project and archive the source code, you can learn more about this project on my blog: https://yuk068.github.io/
+![gomoku game](gomoku.png)
 
 ## Configuration setup:
 
