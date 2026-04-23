@@ -353,7 +353,7 @@ public class GomokuGUI extends JFrame {
     }
 
     private void promptUserSettings() {
-        String[] bots = {"Bot - Bullet", "Bot - Blitz", "Bot - Standard", "Bot - Overthinking", "Bot - Dynamic"};
+        String[] bots = {"Bot - Bullet", "Bot - Blitz", "Bot - Standard", "Bot - Overthinking", "Bot - Eagle", "Bot - Dynamic"};
         String[] startOptions = {"Human Starts", "Bot Starts"};
 
         String selectedBot = null;
@@ -398,6 +398,13 @@ public class GomokuGUI extends JFrame {
                 bot = new GomokuBot(game, false);
                 bot.setDepth(3);
                 bot.setSight(1);
+                botName = bots[3];
+                dynamicBot = false;
+                break;
+            case "Bot - Eagle":
+                bot = new GomokuBot(game, false);
+                bot.setDepth(2);
+                bot.setSight(2);
                 botName = bots[3];
                 dynamicBot = false;
                 break;
