@@ -28,4 +28,5 @@ Compiled in Java 15.
 - Blitz
 - Standard
 - Overthinking
+- Eagle
 - Dynamic
