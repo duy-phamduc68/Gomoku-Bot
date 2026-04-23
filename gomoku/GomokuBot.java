@@ -4,6 +4,9 @@ import java.util.*;
 
 public class GomokuBot {
 
+    public static long timeLimitMs = 7500;
+    private static long startTime;
+
     public int sight = 1;
     public int depth = 2;
     public int findWinSight = 1;
@@ -93,24 +96,55 @@ public class GomokuBot {
     }
 
     private void makeStandardMove() {
-        int bestScore = game.turn ? GomokuEvaluatorV1.LOWEST_EVALUATION + 10 : GomokuEvaluatorV1.HIGHEST_EVALUATION - 10;
+        startTime = System.currentTimeMillis();
         int bestMoveIndex = -1;
+        int currentDepth = 1;
         boolean botTurn = game.turn;
-        int[] allIndex = GomokuUtility.getAllSquaresAroundOccupied(game.getBoard(), sight);
 
-        for (int index : allIndex) {
-            int[] move = GomokuUtility.indexToCoordinates(index);
-            GomokuGame afterMove = game.makeMoveToNewGame(move[0], move[1]);
-            int score = minimax(afterMove, GomokuEvaluatorV1.LOWEST_EVALUATION + 10,
-                    GomokuEvaluatorV1.HIGHEST_EVALUATION - 10, depth, afterMove.turn, sight);
-            if (botTurn && score > bestScore) {
-                bestScore = score;
-                bestMoveIndex = index;
-            } else if (!botTurn && score < bestScore) {
-                bestScore = score;
-                bestMoveIndex = index;
+        while (true) {
+            long currentTime = System.currentTimeMillis();
+            if (currentTime - startTime > timeLimitMs || currentDepth > 10) {
+                break;
+            }
+
+            int tempBestMove = -1;
+            int bestScore = botTurn ? GomokuEvaluatorV1.LOWEST_EVALUATION + 10 : GomokuEvaluatorV1.HIGHEST_EVALUATION - 10;
+
+            int[] allIndex = GomokuUtility.getAllSquaresAroundOccupied(game.getBoard(), sight);
+            allIndex = orderMoves(game.getBoard(), allIndex);
+
+            boolean depthCompleted = true;
+
+            for (int index : allIndex) {
+                if (System.currentTimeMillis() - startTime > timeLimitMs) {
+                    depthCompleted = false;
+                    break;
+                }
+
+                int[] move = GomokuUtility.indexToCoordinates(index);
+                GomokuGame afterMove = game.makeMoveToNewGame(move[0], move[1]);
+
+                int score = minimax(afterMove, GomokuEvaluatorV1.LOWEST_EVALUATION + 10,
+                        GomokuEvaluatorV1.HIGHEST_EVALUATION - 10, currentDepth, afterMove.turn, sight);
+
+                if (botTurn && score > bestScore) {
+                    bestScore = score;
+                    tempBestMove = index;
+                } else if (!botTurn && score < bestScore) {
+                    bestScore = score;
+                    tempBestMove = index;
+                }
+            }
+
+            if (depthCompleted) {
+                bestMoveIndex = tempBestMove;
+                System.out.println("Completed Depth " + currentDepth + " in " + (System.currentTimeMillis() - startTime) + "ms");
+                currentDepth++;
+            } else {
+                break;
             }
         }
+
         if (bestMoveIndex != -1) {
             int[] bestMove = GomokuUtility.indexToCoordinates(bestMoveIndex);
             game.makeMove(bestMove[0], bestMove[1]);
@@ -342,6 +376,10 @@ public class GomokuBot {
 
     public static int minimax(GomokuGame currentGame, int alpha, int beta, int depth, boolean turn, int sight) {
         reach++;
+
+        if (System.currentTimeMillis() - startTime > timeLimitMs) {
+            return GomokuEvaluatorV1.evaluateGomokuGame(currentGame);
+        }
 
         Long hash = currentGame.getHash();
         if (transpositionTable.containsKey(hash)) {
