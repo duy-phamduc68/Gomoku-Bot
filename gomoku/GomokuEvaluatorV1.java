@@ -277,7 +277,8 @@ public class GomokuEvaluatorV1 {
     public static int getPatternTheStraightFour(Gomoku[][] board, Gomoku player) {
         int numPattern = 0;
         Gomoku opponent = GomokuUtility.getOpponent(player);
-        int[] allEmptyIndexes = GomokuUtility.getAllEmptySquareIndexes(board);
+        int[] allEmptyIndexes = GomokuUtility.getAllSquaresAroundOccupied(board, 1);
+
         for (int emptyIndex : allEmptyIndexes) {
             int empX = GomokuUtility.indexToCoordinates(emptyIndex)[0];
             int empY = GomokuUtility.indexToCoordinates(emptyIndex)[1];
@@ -305,7 +306,8 @@ public class GomokuEvaluatorV1 {
     public static int getPatternTheStraightThree(Gomoku[][] board, Gomoku player) {
         int numPattern = 0;
         Gomoku opponent = GomokuUtility.getOpponent(player);
-        int[] allEmptyIndexes = GomokuUtility.getAllEmptySquareIndexes(board);
+        int[] allEmptyIndexes = GomokuUtility.getAllSquaresAroundOccupied(board, 1);
+
         for (int emptyIndex : allEmptyIndexes) {
             int empX = GomokuUtility.indexToCoordinates(emptyIndex)[0];
             int empY = GomokuUtility.indexToCoordinates(emptyIndex)[1];
@@ -371,7 +373,8 @@ public class GomokuEvaluatorV1 {
     public static int getPatternTheBrokenThree(Gomoku[][] board, Gomoku player) {
         int numPattern = 0;
         Gomoku opponent = GomokuUtility.getOpponent(player);
-        int[] allEmptyIndexes = GomokuUtility.getAllEmptySquareIndexes(board);
+        int[] allEmptyIndexes = GomokuUtility.getAllSquaresAroundOccupied(board, 1);
+
         for (int emptyIndex : allEmptyIndexes) {
             int empX = GomokuUtility.indexToCoordinates(emptyIndex)[0];
             int empY = GomokuUtility.indexToCoordinates(emptyIndex)[1];

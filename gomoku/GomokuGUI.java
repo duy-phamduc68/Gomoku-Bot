@@ -20,7 +20,7 @@ public class GomokuGUI extends JFrame {
     private String title;
     private String botName;
     public static int boardSize;
-    
+
     boolean botVsBot = false;
     boolean botStart = false;
     boolean botGame = true;
@@ -178,33 +178,42 @@ public class GomokuGUI extends JFrame {
                             GomokuEvaluatorV1.debugAllPattern(game);
                             System.out.println();
                             update();
+
                             if (botGame && !game.isOver()) {
                                 botIsThinking = true;
                                 overlayPanel.setVisible(true);
-                                setTitle("Gomoku - Bot is thinking");
-                                Timer timer = getBotTimer();
-                                timer.start();
+                                setTitle("Gomoku - Bot is thinking...");
+                                triggerBotMove();
                             }
                         }
                     }
                 }
             }
 
-            private Timer getBotTimer() {
-                Timer timer = new Timer(0, event -> {
-                    bot.makeMove();
-                    moveLog.add(bot.moveMadeIndex);
-                    game.replayTape.add(GomokuUtility.copyBoard(game.getBoard()));
-                    SFX.playSound("move.wav", 6);
-                    GomokuEvaluatorV1.debugAllPattern(game);
-                    System.out.println();
-                    update();
-                    if (game.isOver()) {
-                        ((Timer) event.getSource()).stop();
+            private void triggerBotMove() {
+                SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
+                    @Override
+                    protected Void doInBackground() throws Exception {
+                        bot.makeMove();
+                        return null;
                     }
-                });
-                timer.setRepeats(botVsBot);
-                return timer;
+
+                    @Override
+                    protected void done() {
+                        moveLog.add(bot.moveMadeIndex);
+                        game.replayTape.add(GomokuUtility.copyBoard(game.getBoard()));
+                        SFX.playSound("move.wav", 6);
+                        GomokuEvaluatorV1.debugAllPattern(game);
+                        System.out.println();
+
+                        update();
+
+                        if (botVsBot && !game.isOver()) {
+                            triggerBotMove();
+                        }
+                    }
+                };
+                worker.execute();
             }
         });
         return square;
@@ -223,7 +232,10 @@ public class GomokuGUI extends JFrame {
                 JLayeredPane layeredPane = new JLayeredPane();
                 layeredPane.setLayout(null);
 
-                DrawingPanel drawingPanel = new DrawingPanel(entity, i, j);
+                int index = i * game.size + j;
+                boolean isLatestMove = !moveLog.isEmpty() && index == moveLog.get(moveLog.size() - 1);
+
+                DrawingPanel drawingPanel = new DrawingPanel(entity, i, j, isLatestMove);
                 drawingPanel.setBounds(0, 0, square.getWidth(), square.getHeight());
                 layeredPane.add(drawingPanel, JLayeredPane.DEFAULT_LAYER);
 
@@ -447,11 +459,13 @@ public class GomokuGUI extends JFrame {
         private final Gomoku entity;
         private final int x;
         private final int y;
+        private final boolean isLatestMove;
 
-        public DrawingPanel(Gomoku entity, int x, int y) {
+        public DrawingPanel(Gomoku entity, int x, int y, boolean isLatestMove) {
             this.x = x;
             this.y = y;
             this.entity = entity;
+            this.isLatestMove = isLatestMove;
             setPreferredSize(new Dimension(50, 50));
         }
 
@@ -520,19 +534,33 @@ public class GomokuGUI extends JFrame {
             }
 
             int diameter = Math.min(size, height) - 10;
-            int x = (size - diameter) / 2;
-            int y = (height - diameter) / 2;
+            int stoneX = (size - diameter) / 2;
+            int stoneY = (height - diameter) / 2;
 
             if (entity == Gomoku.BLACK) {
                 g.setColor(Color.DARK_GRAY);
-                g2d.fillOval(x - 1, y - 1, diameter + 2, diameter + 2);
+                g2d.fillOval(stoneX - 1, stoneY - 1, diameter + 2, diameter + 2);
                 g.setColor(Color.BLACK);
-                g2d.fillOval(x, y, diameter, diameter);
+                g2d.fillOval(stoneX, stoneY, diameter, diameter);
             } else if (entity == Gomoku.WHITE) {
                 g.setColor(Color.DARK_GRAY);
-                g2d.fillOval(x - 1, y - 1, diameter + 2, diameter + 2);
+                g2d.fillOval(stoneX - 1, stoneY - 1, diameter + 2, diameter + 2);
                 g.setColor(Color.WHITE);
-                g2d.fillOval(x, y, diameter, diameter);
+                g2d.fillOval(stoneX, stoneY, diameter, diameter);
+            }
+
+            if (isLatestMove && entity != Gomoku.EMPTY) {
+                Graphics2D marker = (Graphics2D) g2d.create();
+                marker.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                marker.setColor(new Color(0, 255, 255, 220));
+                marker.setStroke(new BasicStroke(2.5f));
+                int dotSize = 6;
+                marker.fillOval(
+                        stoneX + diameter / 2 - dotSize / 2,
+                        stoneY + diameter / 2 - dotSize / 2,
+                        dotSize,
+                        dotSize
+                );
             }
         }
     }

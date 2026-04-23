@@ -132,6 +132,8 @@ public class GomokuBot {
         int[] allIndexInnerRing = GomokuUtility.getAllSquaresAroundOccupied(game.getBoard(), dynamicCloseSight);
         int[] allIndexOuterRing = GomokuUtility.removeAll(allIndex, allIndexInnerRing);
 
+        allIndex = orderMoves(game.getBoard(), allIndex);
+
         if (game.moveMade >= dynamicLargeSightCutOff) {
             largeSightCutOff = true;
             allIndex = GomokuUtility.removeAll(allIndex, allIndexOuterRing);
@@ -354,7 +356,10 @@ public class GomokuBot {
 
         if (turn) {
             int maxEval = GomokuEvaluatorV1.LOWEST_EVALUATION + 10;
-            for (int index : GomokuUtility.getAllSquaresAroundOccupied(currentGame.getBoard(), sight)) {
+            int[] moves = GomokuUtility.getAllSquaresAroundOccupied(currentGame.getBoard(), sight);
+            moves = orderMoves(currentGame.getBoard(), moves);
+
+            for (int index : moves) {
                 int[] move = GomokuUtility.indexToCoordinates(index);
                 GomokuGame afterMove = currentGame.makeMoveToNewGame(move[0], move[1]);
                 int eval = minimax(afterMove, alpha, beta, depth - 1, afterMove.turn, sight);
@@ -365,7 +370,10 @@ public class GomokuBot {
             return maxEval;
         } else {
             int minEval = GomokuEvaluatorV1.HIGHEST_EVALUATION - 10;
-            for (int index : GomokuUtility.getAllSquaresAroundOccupied(currentGame.getBoard(), sight)) {
+            int[] moves = GomokuUtility.getAllSquaresAroundOccupied(currentGame.getBoard(), sight);
+            moves = orderMoves(currentGame.getBoard(), moves);
+
+            for (int index : moves) {
                 int[] move = GomokuUtility.indexToCoordinates(index);
                 GomokuGame afterMove = currentGame.makeMoveToNewGame(move[0], move[1]);
                 int eval = minimax(afterMove, alpha, beta, depth - 1, afterMove.turn, sight);
@@ -375,6 +383,34 @@ public class GomokuBot {
             }
             return minEval;
         }
+    }
+
+    private static int[] orderMoves(Gomoku[][] board, int[] moves) {
+        Integer[] boxedMoves = Arrays.stream(moves).boxed().toArray(Integer[]::new);
+
+        Arrays.sort(boxedMoves, (a, b) -> {
+            int scoreA = quickScoreMove(board, a);
+            int scoreB = quickScoreMove(board, b);
+            return Integer.compare(scoreB, scoreA);
+        });
+
+        return Arrays.stream(boxedMoves).mapToInt(Integer::intValue).toArray();
+    }
+
+    private static int quickScoreMove(Gomoku[][] board, int moveIndex) {
+        int score = 0;
+        int[] coord = GomokuUtility.indexToCoordinates(moveIndex);
+        int x = coord[0];
+        int y = coord[1];
+
+        for (int[] dir : GomokuUtility.DIRECTIONS_DELTAS) {
+            int nx = x + dir[0];
+            int ny = y + dir[1];
+            if (GomokuUtility.isValidCoordinates(nx, ny) && board[nx][ny] != Gomoku.EMPTY) {
+                score++;
+            }
+        }
+        return score;
     }
 
 }
